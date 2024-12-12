@@ -19,6 +19,12 @@ warning: false
 
 # Data Exploration
 ```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+```{r}
 # Load dataset
 file_path <- "netflix_titles.csv"
 netflix_data <- read.csv(file_path)
@@ -29,20 +35,37 @@ View(netflix_data)
 summary(netflix_data)
 ```
 
+
 ```{r}
 # Find Missing Data
 netflix_data[netflix_data == ""] <- NA
 netflix_data[netflix_data == " "] <- NA
-colSums(is.na(netflix_data))
+
+#colSums(is.na(netflix_data))
+
+# Calculate the number of missing values in each column
+missing_data <- colSums(is.na(netflix_data))
+print(missing_data)
+missing_data_df <- data.frame(Column = names(missing_data), MissingCount = missing_data)
+
+ggplot(missing_data_df, aes(x = reorder(Column, -MissingCount), y = MissingCount, fill = MissingCount)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(
+    title = "Missing Data Count by Column",
+    x = "Columns",
+    y = "Count of Missing Values"
+  ) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  theme(legend.position = "none")
 
 ```
+
 ```{r}
 # Cleaning Missing Data
   # Replace missing values with "Unknown"
 netflix_data$director[is.na(netflix_data$director)] <- "Unknown"
-
 netflix_data$cast[is.na(netflix_data$cast)] <- "Unknown"
-
 netflix_data$country[is.na(netflix_data$country)] <- "Unknown"
 
 colSums(is.na(netflix_data))
@@ -54,11 +77,7 @@ cleaned_data <- read.csv("cleaned_netflix_data.csv")
 ```
 
 ## EDA
-```{r}
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-```
+
 ### 1. Movie vs. TV show
 
 ```{r}
@@ -166,14 +185,57 @@ ggplot(top_countries, aes(x = reorder(country, n), y = n, fill = country)) +
 
 
 
-
-
 # Methodology
 
 
 # Research Questions
 
-## RQ1.
+## RQ1. What are the most frequently occurring keywords in the 'description' text of Netflix content?
+```{r}
+# Load required libraries
+# library(dplyr)
+library(tm)
+library(wordcloud)
+
+# Extract the 'description' column and remove missing values
+descriptions <- cleaned_data$description
+descriptions <- na.omit(descriptions)
+
+# Combine all descriptions into a single text
+text <- paste(descriptions, collapse = " ")
+
+# Create a corpus
+corpus <- Corpus(VectorSource(text))
+
+# Preprocess the text: remove punctuation, numbers, stopwords, and convert to lowercase
+corpus <- corpus %>%
+  tm_map(content_transformer(tolower)) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removeWords, stopwords("english"))
+
+# Create a term-document matrix
+tdm <- TermDocumentMatrix(corpus)
+tdm_matrix <- as.matrix(tdm)
+
+# Sum the frequency of words
+word_freq <- sort(rowSums(tdm_matrix), decreasing = TRUE)
+
+# Create a data frame of words and their frequencies
+word_data <- data.frame(word = names(word_freq), freq = word_freq)
+
+# Generate the word cloud
+set.seed(123) # For consistent result
+wordcloud(
+  words = word_data$word,
+  freq = word_data$freq,
+  min.freq = 3, # Set minimum frequency for words to appear
+  max.words = 150, # Set the maximum number of words to display
+  random.order = FALSE,
+  colors = brewer.pal(8, "Dark2")
+)
+
+```
 
 
 
