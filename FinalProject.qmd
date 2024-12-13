@@ -8,7 +8,7 @@ author:
     corresponding: true
   - name: Taegwon Lee
     corresponding: true
-date: 12/13/2024
+date: 12/18/2024
 format: pdf
 echo: false
 warning: false
@@ -16,13 +16,15 @@ warning: false
 
 # Introdcution
 
+"Netflix" is the most popular media platform these days. It would not be an exaggeration to call it a pioneer of trends. Netflix has revolutionized the way people consume entertainment by introducing binge-watching, personalized recommendations, and producing high-quality original content. Its innovative approach to streaming has set a new standard for the industry, influencing how competitors deliver and create content. As media consumption continues to rise, we chose a netflix dataset to explore Netflix's trends.
+
 ## Dataset
 
-We found our dataset from Kaggle and the dataset used for this analysis is the Netflix dataset, which contains metadata about Netflix's movie and TV shows. It provides a comprehensive view of the Netflix's catalog and is widely used for research and analysis in media trends.
+We found our dataset from Kaggle and the dataset contains metadata about Netflix's movie and TV shows. It provides a comprehensive view of the Netflix's catalog and is widely used for research and analysis in media trends.
 
-<Should be included> 
+<Should be included>
 
-1. Describe the provenance of the data \* Where did you get the data \* Who collected the data \* For what purpose \* who/what make up the cases
+1.  Describe the provenance of the data \* Where did you get the data \* Who collected the data \* For what purpose \* who/what make up the cases
 
 2.  Explain how data meet the FAIR and/or CARE Principles
 
@@ -73,7 +75,8 @@ print(missing_data)
 missing_data_df <- data.frame(Column = names(missing_data), MissingCount = missing_data)
 
 ggplot(missing_data_df, aes(x = reorder(Column, -MissingCount), y = MissingCount, fill = MissingCount)) +
-  geom_bar(stat = "identity") +
+  geom_bar(stat = "identity") +  
+  coord_flip() +
   theme_minimal() +
   labs(
     title = "Missing Data Count by Column",
@@ -107,15 +110,17 @@ cleaned_data <- read.csv("cleaned_netflix_data.csv")
 ### 1. Movie vs. TV show
 
 ```{r}
-# Content Trends
+#| fig-cap: "Content Trends by Bar graph"
 # 1. Bar graph
 ggplot(cleaned_data, aes(x = type, fill = type)) +
   geom_bar() +
   scale_fill_manual(values = c("#e50914", "#b20710")) +
   labs(title = "Distribution of Content Types", x = "Type", y = "Count") +
   theme_minimal()
+```
 
-# 2. Pie Chart
+```{r}
+#| fig-cap: "Content Trends by Pie Chart"
 # Calculate percentages
 content_type_dist <- cleaned_data %>%
   count(type) %>%
@@ -137,6 +142,7 @@ ggplot(content_type_dist, aes(x = "", y = n, fill = type)) +
 ### 2. Duration
 
 ```{r}
+#| fig-cap: "Distribution of movie durations in Netflix's catalog."
 # Extract numeric values from duration
 cleaned_data$duration_numeric <- as.numeric(gsub("[^0-9]", "", cleaned_data$duration))
 
@@ -151,9 +157,12 @@ ggplot(movie_duration, aes(x = duration_numeric)) +
 
 ```
 
+-   The histogram highlights the most common movie lengths, with the majority clustering around 100 minutes.
+
 ### 3. Yearly Content
 
 ```{r}
+#| fig-cap: "Yearly content addition on Netflix over time."
 # Yearly trend
 cleaned_data$year_added <- as.numeric(format(as.Date(cleaned_data$date_added, "%B %d, %Y"), "%Y"))
 
@@ -174,7 +183,8 @@ ggplot(yearly_content, aes(x = year_added, y = n)) +
 ### 4. Top 10 Genre
 
 ```{r}
-# Genre Trends
+#| fig-cap: "Genre Trends"
+
 genre_data <- cleaned_data %>%
   separate_rows(listed_in, sep = ", ") %>%
   count(listed_in, sort = TRUE) %>%
@@ -195,9 +205,9 @@ ggplot(genre_data, aes(x = reorder(listed_in, n), y = n, fill = listed_in)) +
 ### 5. Top 10 Country
 
 ```{r}
-# Top 10 Countries by Content Count
+#| fig-cap: "Top 10 Countries by Content Count"
 
-  # Find the top 15 countries 
+# Find the top 15 countries 
 top_countries <- cleaned_data %>%
   count(country, sort = TRUE) %>%
   top_n(10, n)
@@ -220,6 +230,7 @@ ggplot(top_countries, aes(x = reorder(country, n), y = n, fill = country)) +
 ## RQ1. What are the most frequently occurring keywords in the 'description' text of Netflix content?
 
 ```{r}
+#| fig-cap: "Most frequent words in description"
 # Extract the 'description' column and remove missing values
 descriptions <- cleaned_data$description
 descriptions <- na.omit(descriptions)
