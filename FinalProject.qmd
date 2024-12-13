@@ -14,15 +14,29 @@ echo: false
 warning: false
 ---
 
-# Intro
+# Introdcution
 
+## Dataset
 
-# Data Exploration
-```{r}
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-```
+We found our dataset from Kaggle and the dataset used for this analysis is the Netflix dataset, which contains metadata about Netflix's movie and TV shows. It provides a comprehensive view of the Netflix's catalog and is widely used for research and analysis in media trends.
+
+<Should be included> 
+
+1. Describe the provenance of the data \* Where did you get the data \* Who collected the data \* For what purpose \* who/what make up the cases
+
+2.  Explain how data meet the FAIR and/or CARE Principles
+
+-   FAIR Principles:
+    -   Findability: Other researchers should be able to find the data - i.e. name files descriptively based on the project. EX 'netflix_titles.csv'
+    -   Accessibility: Other researchers should be able to access the data, within reason
+    -   Interpretability: Data should use standardized formats/terminologies
+    -   Reusability: Data should include detailed metadata to allow reuse
+
+3.  Describe what attributes you'll focus your analysis on
+
+-   Figures and Tables should have appropriate captions and appropriately cross-referenced in the body of your report.
+
+## Data Wrangling
 
 ```{r}
 # Load dataset
@@ -35,6 +49,16 @@ View(netflix_data)
 summary(netflix_data)
 ```
 
+```{r}
+# Necessary libraries for the entire code
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(tm)
+library(wordcloud)
+```
+
+### Handling Missing Values
 
 ```{r}
 # Find Missing Data
@@ -58,8 +82,9 @@ ggplot(missing_data_df, aes(x = reorder(Column, -MissingCount), y = MissingCount
   ) +
   scale_fill_gradient(low = "blue", high = "red") +
   theme(legend.position = "none")
-
 ```
+
+-   This graph shows that there are a lot of missing values in 'director' column.
 
 ```{r}
 # Cleaning Missing Data
@@ -70,13 +95,14 @@ netflix_data$country[is.na(netflix_data$country)] <- "Unknown"
 
 colSums(is.na(netflix_data))
 ```
+
 ```{r}
 # Save the cleaned dataset
 write.csv(netflix_data, "cleaned_netflix_data.csv", row.names = FALSE)
 cleaned_data <- read.csv("cleaned_netflix_data.csv")
 ```
 
-## EDA
+## Exploratory Data Analysis
 
 ### 1. Movie vs. TV show
 
@@ -109,6 +135,7 @@ ggplot(content_type_dist, aes(x = "", y = n, fill = type)) +
 ```
 
 ### 2. Duration
+
 ```{r}
 # Extract numeric values from duration
 cleaned_data$duration_numeric <- as.numeric(gsub("[^0-9]", "", cleaned_data$duration))
@@ -123,7 +150,9 @@ ggplot(movie_duration, aes(x = duration_numeric)) +
   theme_minimal()
 
 ```
-### 3. Yearly Content 
+
+### 3. Yearly Content
+
 ```{r}
 # Yearly trend
 cleaned_data$year_added <- as.numeric(format(as.Date(cleaned_data$date_added, "%B %d, %Y"), "%Y"))
@@ -141,7 +170,9 @@ ggplot(yearly_content, aes(x = year_added, y = n)) +
   theme_minimal()
 
 ```
-### 4. Top 10 Genre 
+
+### 4. Top 10 Genre
+
 ```{r}
 # Genre Trends
 genre_data <- cleaned_data %>%
@@ -160,7 +191,9 @@ ggplot(genre_data, aes(x = reorder(listed_in, n), y = n, fill = listed_in)) +
   theme_minimal() +
   theme(legend.position = "none")
 ```
-### 5. Top 10 Country 
+
+### 5. Top 10 Country
+
 ```{r}
 # Top 10 Countries by Content Count
 
@@ -182,21 +215,11 @@ ggplot(top_countries, aes(x = reorder(country, n), y = n, fill = country)) +
   theme(legend.position = "none")
 ```
 
-
-
-
-# Methodology
-
-
 # Research Questions
 
 ## RQ1. What are the most frequently occurring keywords in the 'description' text of Netflix content?
-```{r}
-# Load required libraries
-# library(dplyr)
-library(tm)
-library(wordcloud)
 
+```{r}
 # Extract the 'description' column and remove missing values
 descriptions <- cleaned_data$description
 descriptions <- na.omit(descriptions)
@@ -237,20 +260,25 @@ wordcloud(
 
 ```
 
+### RQ1 Findings
 
+By analyzing frequency of text data efficiently, we used 'word cloud' graph. From research question 1, we found that the word "life" appears prominently, suggesting that many descriptions revolve around stories about human experiences. Similarly, the frequent occurrence of "young", "new", "love" and "family" may indicate Netflix's emphasis on content for family-friendly audiences or younger demographics. \## RQ2.
 
-## RQ2. 
+### RQ2 Findings
 
+## RQ3.
 
+### RQ3 Findings
 
-## RQ3. 
+# Methodology
 
 # Discussion
 
 # References
 
+------------------------------------------------------------------------
 
-----
+# Code Appendix
 
 ```{r  codeAppend, ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
 ```
