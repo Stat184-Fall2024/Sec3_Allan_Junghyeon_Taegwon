@@ -269,6 +269,71 @@ wordcloud(
   colors = brewer.pal(8, "Dark2")
 )
 
+# Preprocessing to find correlation between directors and keywords in descriptions
+
+# Step 1: Extract and preprocess data
+cleaned_data$description <- tolower(cleaned_data$description) 
+cleaned_data$description <- gsub("[[:punct:]]", "", cleaned_data$description) 
+cleaned_data$description <- gsub("[[:digit:]]", "", cleaned_data$description) 
+cleaned_data$description <- gsub("\\s+", " ", cleaned_data$description) 
+cleaned_data$description <- trimws(cleaned_data$description) 
+
+# Remove stopwords from descriptions
+stop_words <- stopwords("en") 
+cleaned_data$processed_description <- sapply(cleaned_data$description, function(x) {
+  paste(setdiff(unlist(strsplit(x, " ")), stop_words), collapse = " ")
+})
+
+# Step 2: Create a mapping of directors to their descriptions
+director_keywords <- cleaned_data %>%
+  filter(director != "Unknown") %>%
+  group_by(director) %>%
+  summarise(all_descriptions = paste(processed_description, collapse = " ")) %>%
+  ungroup()
+
+# Step 3: Tokenize and extract keywords for each director
+corpus <- Corpus(VectorSource(director_keywords$all_descriptions))
+
+# Further preprocessing
+corpus <- corpus %>%
+  tm_map(removePunctuation) %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removeWords, stopwords("english"))
+
+# Create a Term-Document Matrix
+tdm <- TermDocumentMatrix(corpus)
+tdm_matrix <- as.matrix(tdm)
+
+# Find the most frequent terms for each director
+director_keywords$top_keywords <- apply(tdm_matrix, 2, function(x) {
+  top_terms <- names(sort(x, decreasing = TRUE)[1:10]) # Top 10 terms
+  paste(top_terms, collapse = ", ")
+})
+
+# Step 4: Visualize the correlations
+selected_director <- "Quentin Tarantino" # Replace with any director of interest
+
+# Find the corresponding keywords
+if (selected_director %in% director_keywords$director) {
+  selected_keywords <- tdm_matrix[, which(director_keywords$director == selected_director)]
+  selected_keywords <- selected_keywords[selected_keywords > 0]
+  
+  # Create a word cloud
+  wordcloud(
+    words = names(selected_keywords),
+    freq = selected_keywords,
+    min.freq = 1,
+    max.words = 100,
+    random.order = FALSE,
+    colors = brewer.pal(8, "Dark2")
+  )
+} else {
+  cat("Director not found in the dataset.")
+}
+
+# Step 5: Save results
+write.csv(director_keywords, "director_keywords.csv", row.names = FALSE)
+
 ```
 
 ### RQ1 Findings
