@@ -399,11 +399,16 @@ Which genres are the most frequently produced on Netflix?
 
 ## RQ3.
 
+Is there a correlation between specific directors and certain keywords in Netflix descriptions
+
 ### RQ3 Findings
+
+By analyizing the results of the data, we can concur that certain directors do end up being associated with specific directors. A notable example is the director Quentin Tarantino and the tendency for the descriptions of his movies to include words such as "violence" or "revenge". Coincidentally, the type of movies he generally produces are actions films. From this we can gleam that certain directors will have a preference for certain genres of films.
 
 # Methodology
 
 # Discussion
+The length of movies seems to be an hour and 30 minutes long at average because it is neither too long nor too short for the average person to binge watch on any given day. Most media on Netflix is movies because that seems to be the most easily bingeable type of media. Combined with the hour and 30 minute length, this means that Netflix's general plan is to get viewers to binge as many relatively short movies as possible. Films have historically also been known to cost less to produce than shows, as they take up less time to produce and are as a result much easier to produce more of than multi-episode shows. A large amount of media on Netflix are family friendly films because it is the easiest genre to market to the most amount of people and can provide much broader appeal with its diverse list of easy to understand and emotional themes.
 
 # References
 
