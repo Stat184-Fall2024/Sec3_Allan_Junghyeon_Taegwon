@@ -17,7 +17,6 @@ fig.show: "asis"
 fig.align: "center"
 echo: false
 warning: false
-
 ---
 
 # Introdcution
@@ -40,20 +39,18 @@ All figures and tables in this report include descriptive captions and are cross
 library(dplyr)
 library(tidyr)
 library(ggplot2)
+library(psych)
+library(janitor)
+library(knitr)
+library(kableExtra)
 library(tm)
 library(wordcloud)
-library(psych)
-library(knitr)
-library(janitor)
-library(kableExtra)
-
 ```
 
 ```{r}
 # Load dataset
 file_path <- "netflix_titles.csv"
 netflix_data <- read.csv(file_path)
-View(netflix_data)
 ```
 ### Check the entire dataset
 ```{r}
@@ -77,15 +74,17 @@ kable(describe_summary,
 ```
 
 
-
 ### Handling Missing Values
 
 ```{r}
 # Find Missing Data
 netflix_data[netflix_data == ""] <- NA
 netflix_data[netflix_data == " "] <- NA
-
 #colSums(is.na(netflix_data))
+```
+
+
+```{r}
 
 # Calculate the number of missing values in each column
 missing_data <- colSums(is.na(netflix_data))
@@ -113,7 +112,7 @@ ggplot(missing_data_df, aes(x = reorder(Column, -MissingCount), y = MissingCount
 netflix_data$director[is.na(netflix_data$director)] <- "Unknown"
 netflix_data$cast[is.na(netflix_data$cast)] <- "Unknown"
 netflix_data$country[is.na(netflix_data$country)] <- "Unknown"
-
+return(netflix_data)
 #colSums(is.na(netflix_data))
 
 ```
@@ -193,7 +192,6 @@ ggplot(content_type_dist, aes(x = "", y = n, fill = type)) +
 
 
 ```{r}
-
 # Create the duration col
 cleaned_data <- cleaned_data %>%
   mutate(duration_numeric = as.numeric(gsub("[^0-9]", "", duration)))
@@ -455,6 +453,10 @@ if ("country" %in% colnames(cleaned_data)) {
 }
 
 ```
+
+### RQ2 Findings
+
+
 
 ## RQ3. Is there a correlation between specific directors and certain keywords in Netflix descriptions
 ```{r}
