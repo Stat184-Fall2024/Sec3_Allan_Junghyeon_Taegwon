@@ -9,9 +9,15 @@ author:
   - name: Taegwon Lee
     corresponding: true
 date: 12/18/2024
-format: pdf
+format: 
+  pdf:
+    number-sections: true
+    fig_caption: true
+fig.show: "asis"
+fig.align: "center"
 echo: false
 warning: false
+
 ---
 
 # Introdcution
@@ -58,6 +64,9 @@ library(tidyr)
 library(ggplot2)
 library(tm)
 library(wordcloud)
+library(psych)
+library(knitr)
+
 ```
 
 ### Handling Missing Values
@@ -107,20 +116,25 @@ cleaned_data <- read.csv("cleaned_netflix_data.csv")
 
 ## Exploratory Data Analysis
 
-### 1. Movie vs. TV show
-
+### Movie vs. TV show
 ```{r}
 #| fig-cap: "Content Trends by Bar graph"
+#| fig.pos: "H"
+
 # 1. Bar graph
 ggplot(cleaned_data, aes(x = type, fill = type)) +
   geom_bar() +
-  scale_fill_manual(values = c("#e50914", "#b20710")) +
+  scale_fill_manual(values = c("#e50914", "#d4d4d4")) +
   labs(title = "Distribution of Content Types", x = "Type", y = "Count") +
   theme_minimal()
 ```
 
+
 ```{r}
 #| fig-cap: "Content Trends by Pie Chart"
+#| fig.pos: "H"
+
+# 2. Pie graph
 # Calculate percentages
 content_type_dist <- cleaned_data %>%
   count(type) %>%
@@ -129,7 +143,7 @@ content_type_dist <- cleaned_data %>%
 ggplot(content_type_dist, aes(x = "", y = n, fill = type)) +
   geom_bar(width = 1, stat = "identity") +  # Bar chart as base
   coord_polar(theta = "y") +                # Convert to pie chart
-  scale_fill_manual(values = c("#e50914", "#b20710")) +
+  scale_fill_manual(values = c("#e50914", "#d4d4d4")) +
   geom_text(aes(label = paste0(round(percentage, 1), "%")),  # Add percentage labels
             position = position_stack(vjust = 0.5)) +     # Center labels
   labs(title = "Distribution of Content Types", x = NULL, y = NULL) +
@@ -139,10 +153,35 @@ ggplot(content_type_dist, aes(x = "", y = n, fill = type)) +
         panel.grid = element_blank())           # Remove grid lines
 ```
 
-### 2. Duration
+
+```{r}
+
+# Create the duration col
+cleaned_data <- cleaned_data %>%
+  mutate(duration_numeric = as.numeric(gsub("[^0-9]", "", duration)))
+
+grouped_stats <- cleaned_data %>%
+  group_by(type) %>%
+  summarize(
+    avg_duration = mean(duration_numeric, na.rm = TRUE),
+    median_duration = median(duration_numeric, na.rm = TRUE),
+    min_duration = min(duration_numeric, na.rm = TRUE),
+    max_duration = max(duration_numeric, na.rm = TRUE),
+    count = n()
+  )
+
+# Display the table using knitr::kable
+kable(grouped_stats, caption = "Descriptive Statistics by Content Type")
+
+```
+
+### Duration
 
 ```{r}
 #| fig-cap: "Distribution of movie durations in Netflix's catalog."
+#| fig.pos: "H"
+
+
 # Extract numeric values from duration
 cleaned_data$duration_numeric <- as.numeric(gsub("[^0-9]", "", cleaned_data$duration))
 
@@ -155,14 +194,25 @@ ggplot(movie_duration, aes(x = duration_numeric)) +
   labs(title = "Distribution of Movie Durations", x = "Duration (minutes)", y = "Count") +
   theme_minimal()
 
+# Get descriptive statistics for numeric columns
+describe_stats <- psych::describe(cleaned_data$duration_numeric)
+
+# Display the results with kable
+kable(describe_stats, 
+      caption = "Descriptive Statistics for Movie Duration", 
+      digits = 2, 
+      align = "c")
 ```
 
 -   The histogram highlights the most common movie lengths, with the majority clustering around 100 minutes.
 
-### 3. Yearly Content
+### Yearly Content Addition
 
 ```{r}
 #| fig-cap: "Yearly content addition on Netflix over time."
+#| fig.pos: "H"
+
+
 # Yearly trend
 cleaned_data$year_added <- as.numeric(format(as.Date(cleaned_data$date_added, "%B %d, %Y"), "%Y"))
 
@@ -174,16 +224,17 @@ yearly_content <- cleaned_data %>%
 # Line plot
 ggplot(yearly_content, aes(x = year_added, y = n)) +
   geom_line(color = "#e50914", size = 1.2) +
-  geom_point(color = "#b20710", size = 3) +
+  geom_point(color = "#990033", size = 3) +
   labs(title = "Yearly Content Addition", x = "Year", y = "Content Count") +
   theme_minimal()
 
 ```
 
-### 4. Top 10 Genre
+### Top 10 Genres
 
 ```{r}
 #| fig-cap: "Genre Trends"
+#| fig.pos: "H"
 
 genre_data <- cleaned_data %>%
   separate_rows(listed_in, sep = ", ") %>%
@@ -202,10 +253,11 @@ ggplot(genre_data, aes(x = reorder(listed_in, n), y = n, fill = listed_in)) +
   theme(legend.position = "none")
 ```
 
-### 5. Top 10 Country
+### Top 10 Countries
 
 ```{r}
 #| fig-cap: "Top 10 Countries by Content Count"
+#| fig.pos: "H"
 
 # Find the top 15 countries 
 top_countries <- cleaned_data %>%
@@ -227,10 +279,12 @@ ggplot(top_countries, aes(x = reorder(country, n), y = n, fill = country)) +
 
 # Research Questions
 
-## RQ1. What are the most frequently occurring keywords in the 'description' text of Netflix content?
+## RQ1.What are the most frequently occurring keywords in the 'description' text of Netflix content?
 
 ```{r}
 #| fig-cap: "Most frequent words in description"
+#| fig.pos: "H"
+
 # Extract the 'description' column and remove missing values
 descriptions <- cleaned_data$description
 descriptions <- na.omit(descriptions)
@@ -268,6 +322,73 @@ wordcloud(
   random.order = FALSE,
   colors = brewer.pal(8, "Dark2")
 )
+
+
+## RQ2. Which genres are the most frequently produced on Netflix?
+
+```
+### RQ1 Findings
+
+By analyzing frequency of text data efficiently, we used 'word cloud' graph. From research question 1, we found that the word "life" appears prominently, suggesting that many descriptions revolve around stories about human experiences. Similarly, the frequent occurrence of "young", "new", "love" and "family" may indicate Netflix's emphasis on content for family-friendly audiences or younger demographics.
+
+
+## RQ2. Which genres are the most frequently produced on Netflix?
+
+```{r}
+#| fig-cap: "Top 10 most frequently produced genres on Netflix"
+#| fig.pos: "H"
+
+# Step 1: Extract and preprocess data
+# Load the 'listed_in' column, which contains genre information, and remove missing values
+genres <- cleaned_data$listed_in
+genres <- na.omit(genres)
+
+# Step 2: Split multiple genres in a single entry into separate rows
+# Split genres by comma and trim whitespace
+genres_data <- data.frame(genres = unlist(strsplit(as.character(genres), ",\\s*")))
+
+# Step 3: Count the frequency of each genre
+genre_frequency <- genres_data %>%
+  group_by(genres) %>%
+  summarise(Frequency = n()) %>%
+  arrange(desc(Frequency))
+
+# Display the top 10 genres
+print(head(genre_frequency, 10))
+
+# Step 4: Visualize the top genres
+ggplot(data = head(genre_frequency, 10), aes(x = reorder(genres, Frequency), y = Frequency)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  coord_flip() +
+  labs(title = "Top 10 Most Frequently Produced Genres on Netflix",
+       x = "Genre",
+       y = "Frequency") +
+  theme_minimal()
+
+# Step 5: Save the result for further use
+write.csv(genre_frequency, "netflix_genre_frequency.csv", row.names = FALSE)
+
+# Additional Exploration: Genres across regions
+# If there are columns related to country or region, we can analyze genre distributions by region
+if ("country" %in% colnames(cleaned_data)) {
+  genre_region <- cleaned_data %>%
+    select(listed_in, country) %>%
+    separate_rows(listed_in, sep = ",\\s*") %>%
+    group_by(country, listed_in) %>%
+    summarise(Frequency = n()) %>%
+    arrange(country, desc(Frequency))
+
+  # Save region-specific genre data
+  write.csv(genre_region, "netflix_genre_by_region.csv", row.names = FALSE)
+}
+
+```
+
+## RQ3. Is there a correlation between specific directors and certain keywords in Netflix descriptions
+```{r}
+#| fig-cap: "Corrlation between directors and keywords"
+#| fig.pos: "H"
+
 
 # Preprocessing to find correlation between directors and keywords in descriptions
 
@@ -333,85 +454,18 @@ if (selected_director %in% director_keywords$director) {
 
 # Step 5: Save results
 write.csv(director_keywords, "director_keywords.csv", row.names = FALSE)
-
-## RQ2. Which genres are the most frequently produced on Netflix?
-
-```{r}
-
-#| fig-cap: "Top 10 most frequently produced genres on Netflix"
-
-# Step 1: Extract and preprocess data
-# Load the 'listed_in' column, which contains genre information, and remove missing values
-genres <- cleaned_data$listed_in
-genres <- na.omit(genres)
-
-# Step 2: Split multiple genres in a single entry into separate rows
-# Split genres by comma and trim whitespace
-library(tidyr)
-library(dplyr)
-genres_data <- data.frame(genres = unlist(strsplit(as.character(genres), ",\\s*")))
-
-# Step 3: Count the frequency of each genre
-genre_frequency <- genres_data %>%
-  group_by(genres) %>%
-  summarise(Frequency = n()) %>%
-  arrange(desc(Frequency))
-
-# Display the top 10 genres
-print(head(genre_frequency, 10))
-
-# Step 4: Visualize the top genres
-library(ggplot2)
-ggplot(data = head(genre_frequency, 10), aes(x = reorder(genres, Frequency), y = Frequency)) +
-  geom_bar(stat = "identity", fill = "skyblue") +
-  coord_flip() +
-  labs(title = "Top 10 Most Frequently Produced Genres on Netflix",
-       x = "Genre",
-       y = "Frequency") +
-  theme_minimal()
-
-# Step 5: Save the result for further use
-write.csv(genre_frequency, "netflix_genre_frequency.csv", row.names = FALSE)
-
-# Additional Exploration: Genres across regions
-# If there are columns related to country or region, we can analyze genre distributions by region
-if ("country" %in% colnames(cleaned_data)) {
-  genre_region <- cleaned_data %>%
-    select(listed_in, country) %>%
-    separate_rows(listed_in, sep = ",\\s*") %>%
-    group_by(country, listed_in) %>%
-    summarise(Frequency = n()) %>%
-    arrange(country, desc(Frequency))
-
-  # Save region-specific genre data
-  write.csv(genre_region, "netflix_genre_by_region.csv", row.names = FALSE)
-}
-
 ```
 
-### RQ1 Findings
-
-By analyzing frequency of text data efficiently, we used 'word cloud' graph. From research question 1, we found that the word "life" appears prominently, suggesting that many descriptions revolve around stories about human experiences. Similarly, the frequent occurrence of "young", "new", "love" and "family" may indicate Netflix's emphasis on content for family-friendly audiences or younger demographics. \## RQ2.
-
-### RQ2 Findings
-
-Which genres are the most frequently produced on Netflix?
-
-## RQ3.
-
-Is there a correlation between specific directors and certain keywords in Netflix descriptions
-
 ### RQ3 Findings
-
 By analyizing the results of the data, we can concur that certain directors do end up being associated with specific directors. A notable example is the director Quentin Tarantino and the tendency for the descriptions of his movies to include words such as "violence" or "revenge". Coincidentally, the type of movies he generally produces are actions films. From this we can gleam that certain directors will have a preference for certain genres of films.
 
-# Methodology
 
 # Discussion
 The length of movies seems to be an hour and 30 minutes long at average because it is neither too long nor too short for the average person to binge watch on any given day. Most media on Netflix is movies because that seems to be the most easily bingeable type of media. Combined with the hour and 30 minute length, this means that Netflix's general plan is to get viewers to binge as many relatively short movies as possible. Films have historically also been known to cost less to produce than shows, as they take up less time to produce and are as a result much easier to produce more of than multi-episode shows. A large amount of media on Netflix are family friendly films because it is the easiest genre to market to the most amount of people and can provide much broader appeal with its diverse list of easy to understand and emotional themes.
 
-# References
 
+# References
+Bansal, S. (2023). *Netflix Movies and TV Shows Dataset*. [https://www.kaggle.com/datasets/shivamb/netflix-shows](https://www.kaggle.com/datasets/shivamb/netflix-shows)
 ------------------------------------------------------------------------
 
 # Code Appendix
