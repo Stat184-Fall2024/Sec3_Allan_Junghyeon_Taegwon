@@ -26,37 +26,15 @@ warning: false
 
 ## Dataset
 
-We found our dataset from Kaggle and the dataset contains metadata about Netflix's movie and TV shows. It provides a comprehensive view of the Netflix's catalog and is widely used for research and analysis in media trends.
+We found our dataset from Kaggle, a well-known platform for sharing datasets and conducting data-driven analysis. The dataset, titled "Netflix Movies and TV Shows", was collected by Shivam Bansal. It contains metadata about Netflix's catalog, including movies and TV shows, and was created to analyze trends, content distribution, and patterns in Netflix's offerings. Each row in the dataset corresponds to a specific piece of content, such as a movie or TV show, and includes attributes like title, director, cast, country, release year, duration, date added, and genre.
 
-<Should be included>
+The dataset adheres to the FAIR principles. It is findable because it has a clear and descriptive title and file name (netflix_titles.csv) that allow researchers to locate it easily. It is accessible as it is publicly available for download on Kaggle. The data is interpretable because it uses standardized formats and clear column names such as title, type, and country, which are intuitive and require no additional documentation. Finally, the dataset ensures reusability by including detailed metadata and a clear structure, allowing it to be reused for various types of research and analysis.
 
-1.  Describe the provenance of the data \* Where did you get the data \* Who collected the data \* For what purpose \* who/what make up the cases
+For our analysis, we focused on several key attributes to address research questions and explore trends within the Netflix catalog. These attributes include type, which differentiates between movies and TV shows; duration, which provides the length of movies in minutes or the number of seasons for TV shows; and date_added, which indicates when content was added to Netflix, allowing us to analyze trends in yearly additions. We also examined the listed_in column to identify popular genres, the country column to explore regional content contributions, and the cast column to determine the most frequently featured actors or actresses. Additionally, we analyzed the description column to identify recurring themes and keywords in Netflix's content.
 
-2.  Explain how data meet the FAIR and/or CARE Principles
+All figures and tables in this report include descriptive captions and are cross-referenced within the text to maintain clarity and ensure that the results are easy to follow. These visualizations and summaries first highlight key insights, such as the distribution of content types, yearly content trends, top genres, top actors and the countries contributing most to Netflix's library. By using this background information, we collected 3 research questions and findings.
 
--   FAIR Principles:
-    -   Findability: Other researchers should be able to find the data - i.e. name files descriptively based on the project. EX 'netflix_titles.csv'
-    -   Accessibility: Other researchers should be able to access the data, within reason
-    -   Interpretability: Data should use standardized formats/terminologies
-    -   Reusability: Data should include detailed metadata to allow reuse
-
-3.  Describe what attributes you'll focus your analysis on
-
--   Figures and Tables should have appropriate captions and appropriately cross-referenced in the body of your report.
-
-## Data Wrangling
-
-```{r}
-# Load dataset
-file_path <- "netflix_titles.csv"
-netflix_data <- read.csv(file_path)
-View(netflix_data)
-```
-
-```{r}
-summary(netflix_data)
-```
-
+## Data Wrangling Process
 ```{r}
 # Necessary libraries for the entire code
 library(dplyr)
@@ -66,8 +44,39 @@ library(tm)
 library(wordcloud)
 library(psych)
 library(knitr)
+library(janitor)
+library(kableExtra)
 
 ```
+
+```{r}
+# Load dataset
+file_path <- "netflix_titles.csv"
+netflix_data <- read.csv(file_path)
+View(netflix_data)
+```
+### Check the entire dataset
+```{r}
+# summary(netflix_data)
+
+# Use psych::describe() for summary
+describe_summary <- psych::describe(netflix_data)
+
+# Display the table
+kable(describe_summary, 
+      caption = "Descriptive Statistics for Entire Dataset",
+      digits = 2,
+      format = "latex",
+      booktabs = TRUE) %>%
+  kable_styling(latex_options = c("hold_position", "scale_down"), 
+                font_size = 8) %>% 
+  column_spec(1, width = "2cm") %>%
+  column_spec(2, width = "1.5cm") %>%
+  column_spec(3:12, width = "1.2cm")
+
+```
+
+
 
 ### Handling Missing Values
 
@@ -80,7 +89,7 @@ netflix_data[netflix_data == " "] <- NA
 
 # Calculate the number of missing values in each column
 missing_data <- colSums(is.na(netflix_data))
-print(missing_data)
+# print(missing_data)
 missing_data_df <- data.frame(Column = names(missing_data), MissingCount = missing_data)
 
 ggplot(missing_data_df, aes(x = reorder(Column, -MissingCount), y = MissingCount, fill = MissingCount)) +
@@ -96,7 +105,7 @@ ggplot(missing_data_df, aes(x = reorder(Column, -MissingCount), y = MissingCount
   theme(legend.position = "none")
 ```
 
--   This graph shows that there are a lot of missing values in 'director' column.
+*   This graph shows that there are a lot of missing values in 'director' column.
 
 ```{r}
 # Cleaning Missing Data
@@ -105,7 +114,8 @@ netflix_data$director[is.na(netflix_data$director)] <- "Unknown"
 netflix_data$cast[is.na(netflix_data$cast)] <- "Unknown"
 netflix_data$country[is.na(netflix_data$country)] <- "Unknown"
 
-colSums(is.na(netflix_data))
+#colSums(is.na(netflix_data))
+
 ```
 
 ```{r}
@@ -113,6 +123,25 @@ colSums(is.na(netflix_data))
 write.csv(netflix_data, "cleaned_netflix_data.csv", row.names = FALSE)
 cleaned_data <- read.csv("cleaned_netflix_data.csv")
 ```
+### Checked the cleaned dataset
+```{r}
+# Descriptive statistics for the cleaned dataset
+describe_stats <- psych::describe(cleaned_data)
+
+# Display the results using kable
+kable(describe_stats, 
+      caption = "Descriptive Statistics for Cleaned Dataset",
+      digits = 2,
+      format = "latex",
+      booktabs = TRUE) %>%
+  kable_styling(latex_options = c("hold_position", "scale_down"), 
+                font_size = 8) %>% 
+  column_spec(1, width = "2cm") %>%
+  column_spec(2, width = "1.5cm") %>%
+  column_spec(3:12, width = "1.2cm")
+
+```
+
 
 ## Exploratory Data Analysis
 
@@ -120,6 +149,15 @@ cleaned_data <- read.csv("cleaned_netflix_data.csv")
 ```{r}
 #| fig-cap: "Content Trends by Bar graph"
 #| fig.pos: "H"
+
+
+# Tabyl for summary of 'type' column
+type_summary <- netflix_data %>%
+  tabyl(type)
+
+# Display the result
+kable(type_summary, caption = "Summary of Content Types on Netflix", digits = 2)
+
 
 # 1. Bar graph
 ggplot(cleaned_data, aes(x = type, fill = type)) +
@@ -174,8 +212,13 @@ grouped_stats <- cleaned_data %>%
 kable(grouped_stats, caption = "Descriptive Statistics by Content Type")
 
 ```
+- Those visualizations provide insights into the distribution of content types on Netflix. The bar graph shows that the majority of Netflix's content consists of Movies, which account for over 6,000 entries, while TV Shows represent a smaller portion with around 2,600 entries. The pie chart reinforces this trend, showing that Movies constitute 69.6% of the total content, while TV Shows make up 30.4%.
+- In addition, the table further breaks down the descriptive statistics for each content type. Movies have an average duration of approximately 99.6 minutes with a maximum duration of 312 minutes, while TV Shows average about 1.76 seasons, with the maximum number of seasons reaching 17. 
 
-### Duration
+
+
+
+### Movie Durations
 
 ```{r}
 #| fig-cap: "Distribution of movie durations in Netflix's catalog."
@@ -191,7 +234,7 @@ movie_duration <- cleaned_data %>%
 
 ggplot(movie_duration, aes(x = duration_numeric)) +
   geom_histogram(binwidth = 10, fill = "#e50914", color = "white") +
-  labs(title = "Distribution of Movie Durations", x = "Duration (minutes)", y = "Count") +
+  labs( x = "Duration (minutes)", y = "Count") +
   theme_minimal()
 
 # Get descriptive statistics for numeric columns
@@ -204,7 +247,7 @@ kable(describe_stats,
       align = "c")
 ```
 
--   The histogram highlights the most common movie lengths, with the majority clustering around 100 minutes.
+-   This result highlights the most common movie lengths, with the majority clustering around 100 minutes.
 
 ### Yearly Content Addition
 
@@ -229,6 +272,7 @@ ggplot(yearly_content, aes(x = year_added, y = n)) +
   theme_minimal()
 
 ```
+- This graph shows that starting in 2016, there was a sharp increase, reaching a peak in 2019 with over 2000 new entries.
 
 ### Top 10 Genres
 
@@ -252,6 +296,8 @@ ggplot(genre_data, aes(x = reorder(listed_in, n), y = n, fill = listed_in)) +
   theme_minimal() +
   theme(legend.position = "none")
 ```
+- This bar chart indicates the most frequent genres of content available on Netflix. International Movies lead the list, followed closely by Dramas and Comedies, highlighting Netflix's global focus and strong appeal to audiences who favor story-driven entertainment. Other popular genres include International TV Shows, Documentaries, and Action & Adventure, showing diversity in Netflix's catalog.
+
 
 ### Top 10 Countries
 
@@ -276,10 +322,36 @@ ggplot(top_countries, aes(x = reorder(country, n), y = n, fill = country)) +
   theme_minimal()+
   theme(legend.position = "none")
 ```
+* According to this graph, the United States dominates with the highest content count by a large margin, followed by India.
+
+### Top 10 Actors who have appeared in the most Netflix
+```{r}
+#| fig-cap: "Top 10 Actors"
+#| fig.pos: "H"
+#| 
+# Split the 'cast' column and count occurrences of actors/actresses
+top_actors <- cleaned_data %>%
+  filter(!is.na(cast) & cast != "Unknown") %>%
+  separate_rows(cast, sep = ",\\s*") %>%
+  group_by(cast) %>%
+  summarize(title_count = n()) %>%
+  arrange(desc(title_count)) %>%
+  slice_head(n = 10)  # Top 10 actors/actresses
+
+# Visualization: Bar plot of top actors/actresses
+ggplot(top_actors, aes(x = reorder(cast, title_count), y = title_count, fill = title_count)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Top 10 Actors/Actresses by Netflix Appearances",
+       x = "Actor/Actress", y = "Number of Titles") +
+  scale_fill_gradient(low = "#221f1f", high = "#e50914") +
+  theme_minimal()
+```
+* This graph highlights that the top 10 actors who frequently appear in Netflix titles.
 
 # Research Questions
 
-## RQ1.What are the most frequently occurring keywords in the 'description' text of Netflix content?
+## RQ1. What are the most frequently occurring keywords in the 'description' text of Netflix content?
 
 ```{r}
 #| fig-cap: "Most frequent words in description"
