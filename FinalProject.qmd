@@ -394,9 +394,6 @@ wordcloud(
   colors = brewer.pal(8, "Dark2")
 )
 
-
-## RQ2. Which genres are the most frequently produced on Netflix?
-
 ```
 ### RQ1 Findings
 
@@ -463,6 +460,7 @@ if ("country" %in% colnames(cleaned_data)) {
 
 ### RQ2 Findings
 
+By analyzing the frequency of genres efficiently, we used a bar chart visualization. From Research Question 2, we found that the genre "Drama" appears prominently, suggesting that Netflix prioritizes producing content that often features complex narratives and emotional depth. Similarly, the frequent occurrence of genres such as "Comedy", "Documentary", and "Action" may indicate Netflix's emphasis on catering to a wide range of audience preferences, from light-hearted entertainment to thought-provoking and thrilling experiences. This trend highlights Netflix's strategy of offering diverse content to maintain its global appeal.
 
 
 ## RQ3. Is there a correlation between specific directors and certain keywords in Netflix descriptions
