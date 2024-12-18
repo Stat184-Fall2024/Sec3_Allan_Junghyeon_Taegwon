@@ -334,6 +334,59 @@ if (selected_director %in% director_keywords$director) {
 # Step 5: Save results
 write.csv(director_keywords, "director_keywords.csv", row.names = FALSE)
 
+## RQ2. Which genres are the most frequently produced on Netflix?
+
+```{r}
+
+#| fig-cap: "Top 10 most frequently produced genres on Netflix"
+
+# Step 1: Extract and preprocess data
+# Load the 'listed_in' column, which contains genre information, and remove missing values
+genres <- cleaned_data$listed_in
+genres <- na.omit(genres)
+
+# Step 2: Split multiple genres in a single entry into separate rows
+# Split genres by comma and trim whitespace
+library(tidyr)
+library(dplyr)
+genres_data <- data.frame(genres = unlist(strsplit(as.character(genres), ",\\s*")))
+
+# Step 3: Count the frequency of each genre
+genre_frequency <- genres_data %>%
+  group_by(genres) %>%
+  summarise(Frequency = n()) %>%
+  arrange(desc(Frequency))
+
+# Display the top 10 genres
+print(head(genre_frequency, 10))
+
+# Step 4: Visualize the top genres
+library(ggplot2)
+ggplot(data = head(genre_frequency, 10), aes(x = reorder(genres, Frequency), y = Frequency)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  coord_flip() +
+  labs(title = "Top 10 Most Frequently Produced Genres on Netflix",
+       x = "Genre",
+       y = "Frequency") +
+  theme_minimal()
+
+# Step 5: Save the result for further use
+write.csv(genre_frequency, "netflix_genre_frequency.csv", row.names = FALSE)
+
+# Additional Exploration: Genres across regions
+# If there are columns related to country or region, we can analyze genre distributions by region
+if ("country" %in% colnames(cleaned_data)) {
+  genre_region <- cleaned_data %>%
+    select(listed_in, country) %>%
+    separate_rows(listed_in, sep = ",\\s*") %>%
+    group_by(country, listed_in) %>%
+    summarise(Frequency = n()) %>%
+    arrange(country, desc(Frequency))
+
+  # Save region-specific genre data
+  write.csv(genre_region, "netflix_genre_by_region.csv", row.names = FALSE)
+}
+
 ```
 
 ### RQ1 Findings
@@ -341,6 +394,8 @@ write.csv(director_keywords, "director_keywords.csv", row.names = FALSE)
 By analyzing frequency of text data efficiently, we used 'word cloud' graph. From research question 1, we found that the word "life" appears prominently, suggesting that many descriptions revolve around stories about human experiences. Similarly, the frequent occurrence of "young", "new", "love" and "family" may indicate Netflix's emphasis on content for family-friendly audiences or younger demographics. \## RQ2.
 
 ### RQ2 Findings
+
+Which genres are the most frequently produced on Netflix?
 
 ## RQ3.
 
