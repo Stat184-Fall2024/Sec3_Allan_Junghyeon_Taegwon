@@ -23,9 +23,10 @@ warning: false
 
 "Netflix" is the most popular media platform these days. It would not be an exaggeration to call it a pioneer of trends. Netflix has revolutionized the way people consume entertainment by introducing binge-watching, personalized recommendations, and producing high-quality original content. Its innovative approach to streaming has set a new standard for the industry, influencing how competitors deliver and create content. As media consumption continues to rise, we chose a netflix dataset to explore Netflix's trends.
 
-## Dataset
+## Dataset 
+[^1]: Bansal, S. (2023). *Netflix Movies and TV Shows Dataset*. [https://www.kaggle.com/datasets/shivamb/netflix-shows](https://www.kaggle.com/datasets/shivamb/netflix-shows)
 
-We found our dataset from Kaggle, a well-known platform for sharing datasets and conducting data-driven analysis. The dataset, titled "Netflix Movies and TV Shows", was collected by Shivam Bansal. It contains metadata about Netflix's catalog, including movies and TV shows, and was created to analyze trends, content distribution, and patterns in Netflix's offerings. Each row in the dataset corresponds to a specific piece of content, such as a movie or TV show, and includes attributes like title, director, cast, country, release year, duration, date added, and genre.
+We found our dataset from Kaggle, a well-known platform for sharing datasets and conducting data-driven analysis. The dataset, titled "Netflix Movies and TV Shows" [^1], was collected by Shivam Bansal. It contains metadata about Netflix's catalog, including movies and TV shows, and was created to analyze trends, content distribution, and patterns in Netflix's offerings. Each row in the dataset corresponds to a specific piece of content, such as a movie or TV show, and includes attributes like title, director, cast, country, release year, duration, date added, and genre.
 
 The dataset adheres to the FAIR principles. It is findable because it has a clear and descriptive title and file name (netflix_titles.csv) that allow researchers to locate it easily. It is accessible as it is publicly available for download on Kaggle. The data is interpretable because it uses standardized formats and clear column names such as title, type, and country, which are intuitive and require no additional documentation. Finally, the dataset ensures reusability by including detailed metadata and a clear structure, allowing it to be reused for various types of research and analysis.
 
@@ -424,7 +425,13 @@ genre_frequency <- genres_data %>%
   arrange(desc(Frequency))
 
 # Display the top 10 genres
-print(head(genre_frequency, 10))
+# print(head(genre_frequency, 10))
+kable(head(genre_frequency, 10),
+      caption = "Top 10 Most Frequent Genres on Netflix",
+      col.names = c("Genre", "Count"),
+      digits = 0,
+      format = "markdown") %>%
+  kable_styling(latex_options = c("hold_position", "striped"), font_size = 8)
 
 # Step 4: Visualize the top genres
 ggplot(data = head(genre_frequency, 10), aes(x = reorder(genres, Frequency), y = Frequency)) +
@@ -538,7 +545,7 @@ By analyizing the results of the data, we can concur that certain directors do e
 The length of movies seems to be an hour and 30 minutes long at average because it is neither too long nor too short for the average person to binge watch on any given day. Most media on Netflix is movies because that seems to be the most easily bingeable type of media. Combined with the hour and 30 minute length, this means that Netflix's general plan is to get viewers to binge as many relatively short movies as possible. Films have historically also been known to cost less to produce than shows, as they take up less time to produce and are as a result much easier to produce more of than multi-episode shows. A large amount of media on Netflix are family friendly films because it is the easiest genre to market to the most amount of people and can provide much broader appeal with its diverse list of easy to understand and emotional themes.
 
 
-# References
+# Reference
 Bansal, S. (2023). *Netflix Movies and TV Shows Dataset*. [https://www.kaggle.com/datasets/shivamb/netflix-shows](https://www.kaggle.com/datasets/shivamb/netflix-shows)
 ------------------------------------------------------------------------
 
