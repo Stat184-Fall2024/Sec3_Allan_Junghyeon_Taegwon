@@ -112,7 +112,7 @@ ggplot(missing_data_df, aes(x = reorder(Column, -MissingCount), y = MissingCount
 netflix_data$director[is.na(netflix_data$director)] <- "Unknown"
 netflix_data$cast[is.na(netflix_data$cast)] <- "Unknown"
 netflix_data$country[is.na(netflix_data$country)] <- "Unknown"
-return(netflix_data)
+# return(netflix_data)
 #colSums(is.na(netflix_data))
 
 ```
